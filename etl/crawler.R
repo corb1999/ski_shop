@@ -99,7 +99,7 @@ cash_money <- function(x) {
 
 # confirmed in robots.txt file that it is ok to crawl this base url
 crawl_urls <- list(url_base = 'https://www.evo.com/shop', 
-                   url_suffix = c('/sale/ski/mens/shipsto_us/'), 
+                   url_suffix = c('/sale/ski/mens/shipsto_us/online'), 
                    url_pages = paste0('p_', seq(1, 10)))
 
 crawl_urls
