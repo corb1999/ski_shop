@@ -98,23 +98,45 @@ cash_money <- function(x) {
 # set urls ---------------------------------------------------------
 
 # confirmed in robots.txt file that it is ok to crawl this base url
-crawl_urls <- list(url_base = 'https://www.evo.com/shop', 
-                   url_suffix = c('/sale/ski/mens/shipsto_us/online'), 
-                   url_pages = paste0('p_', seq(1, 10)))
+crawl_urls <- data.frame(url_base = 'https://www.evo.com/shop', 
+                         url_suffix = c('/sale/ski/mens/shipsto_us/online/'), 
+                         url_pages = paste0('p_', seq(1, 10)))
 
-crawl_urls
+paste0(crawl_urls$url_base[1], crawl_urls$url_suffix[1], 
+       crawl_urls$url_pages[1])
 
-paste0(crawl_urls$url_base, crawl_urls$url_suffix, crawl_urls$url_pages[1])
+# run initial crawl so that we can calculate how many pages
+#   we need to ultimately read, also can serve as a test
+init_crawl <- read_html(paste0(crawl_urls$url_base[1], 
+                               crawl_urls$url_suffix[1], 
+                               crawl_urls$url_pages[1]))
+
+results_total <- init_crawl %>% html_elements('.results-count') %>% 
+  html_text2()
+results_total <- as.double(results_total[1])
+
+# now remake the urls dataframe with the correct number of pages to crawl
+crawl_urls <- data.frame(url_base = 'https://www.evo.com/shop', 
+                         url_suffix = c('/sale/ski/mens/shipsto_us/online/'), 
+                         url_pages = paste0('p_', 
+                                            seq(1, 
+                                                ceiling(results_total / 40))))
+# crawl_urls
+
+# cleanup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ls()
+trash()
 
 # ^ -----
 
-# crawling action -----------------------------------------
+# crawling tests -----------------------------------------
 
-asdf <- read_html(paste0(crawl_urls$url_base, 
-                         crawl_urls$url_suffix, 
-                         crawl_urls$url_pages[1]))
+# asdf <- read_html(paste0(crawl_urls$url_base, 
+#                          crawl_urls$url_suffix, 
+#                          crawl_urls$url_pages[1]))
+# asdf <- init_crawl
 
-
+# 0000000000000000000000000000000000000000000000000000000000000000
 # asdf %>% html_elements('.results-count') %>% html_text2()
 # 
 # aa <- asdf %>% html_elements('.product-thumb-details') 
@@ -126,28 +148,95 @@ asdf <- read_html(paste0(crawl_urls$url_base,
 # asdf %>% html_elements('.product-thumb-sale') %>% html_text2()
 # asdf %>% html_elements('.discount') %>% html_text2()
 
+# 0000000000000000000000000000000000000000000000000000000000000000
+# raw_df <- data.frame(product = asdf %>% 
+#                        html_elements('.product-thumb-title') %>% 
+#                        html_text2())
+# raw_df <- cbind(raw_df, data.frame(rid = c(seq(1, nrow(raw_df)))))
+# raw_df
+# 
+# interim_product <- rbind(raw_df, raw_df) %>% arrange(rid) %>% 
+#   select(-rid)
+# 
+# raw_prices <- data.frame(all_prices = asdf %>% 
+#                            html_elements('.product-thumb-price') %>% 
+#                            html_text2(), 
+#                          product = interim_product) %>% 
+#   mutate(interim = row_number(), 
+#          interim = ifelse(interim %% 2 == 0, 
+#                           'discount_price', 'regular_price')) %>% 
+#   pivot_wider(names_from = interim, values_from = all_prices)
+# raw_prices %>% View()
 
-raw_df <- data.frame(product = asdf %>% 
-                       html_elements('.product-thumb-title') %>% 
-                       html_text2())
-raw_df <- cbind(raw_df, data.frame(rid = c(seq(1, nrow(raw_df)))))
-raw_df
-
-interim_product <- rbind(raw_df, raw_df) %>% arrange(rid) %>% 
-  select(-rid)
-
-raw_prices <- data.frame(all_prices = asdf %>% 
-                           html_elements('.product-thumb-price') %>% 
-                           html_text2(), 
-                         product = interim_product) %>% 
-  mutate(interim = row_number(), 
-         interim = ifelse(interim %% 2 == 0, 
-                          'discount_price', 'regular_price')) %>% 
-  pivot_wider(names_from = interim, values_from = all_prices)
-raw_prices %>% View()
-
+# cleanup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# rm(asdf, raw_df, raw_prices)
+# trash()
 
 # ^ -----
 
+# crawling function -----------------------------------------------
 
+fun_crawler <- function(url1, url2, url3, sleepy = 7) {
+  # sleep here to avoid high freq spamming, give the server some rest
+  Sys.sleep(sleepy + runif(1))
+  asdf <- read_html(paste0(url1, url2, url3))
+  # start by pulling product names
+  raw_df <- data.frame(product = asdf %>% 
+                         html_elements('.product-thumb-title') %>% 
+                         html_text2())
+  raw_df <- cbind(raw_df, data.frame(rid = c(seq(1, nrow(raw_df)))))
+  # this is a data cleaning quirck because all prices come out as 
+  #   a single vector and what we actually need is 2 separate vectors
+  #   one with the regular price and one with sale price
+  interim_product <- rbind(raw_df, raw_df) %>% arrange(rid) %>% 
+    select(-rid)
+  raw_prices <- data.frame(all_prices = asdf %>% 
+                             html_elements('.product-thumb-price') %>% 
+                             html_text2(), 
+                           product = interim_product) %>% 
+    mutate(interim = row_number(), 
+           interim = ifelse(interim %% 2 == 0, 
+                            'discount_price', 'regular_price')) %>% 
+    pivot_wider(names_from = interim, values_from = all_prices) %>% 
+    mutate(url_page = url3)
+  return(raw_prices)}
+
+# expected runtime due to sleeping for full run of all pages
+(ceiling(results_total / 40) * 7 / 60) %ps% ' minutes of sleep'
+
+# function tests ++++++++++++++++++++++++++++++++++++++++++
+# test_crawl <- crawl_urls[13, ]
+# 
+# clockin()
+# test_crawl_result <- pmap(.l = list(test_crawl$url_base,
+#                                     test_crawl$url_suffix,
+#                                     test_crawl$url_pages),
+#                           .f = fun_crawler)
+# clockout()
+# test_crawl_result
+# reduce(test_crawl_result, rbind)
+# 
+# rm(test_crawl, test_crawl_result)
+
+# ^ -----
+
+# run the crawler -------------------------------------------------
+
+detach('package:tidylog', unload = TRUE)
+clockin()
+crawler_result <- pmap(.l = list(crawl_urls$url_base, 
+                                 crawl_urls$url_suffix, 
+                                 crawl_urls$url_pages), 
+                       .f = fun_crawler)
+clockout()
+library(tidylog)
+crawler_result
+
+# ^ -----
+
+# reduce and clean up the crawler result -------------------------
+
+
+
+# ^ -----
 
