@@ -236,7 +236,53 @@ crawler_result
 
 # reduce and clean up the crawler result -------------------------
 
+# when crawling, some of the prices come out as list columns 
+#   for a reason i cannot explain a hidden price is created 2 length 
+#   list entires for certain records, and I visually verified that it 
+#   is really just the first price we need, so pluck that from 
+#   the list columns and make them char cols
+fun_plucker <- function(df) {
+  return_me <- df %>% mutate(regular_price = map_chr(regular_price, 
+                                                     pluck, 1), 
+                             discount_price = map_chr(discount_price, 
+                                                      pluck, 1))
+  return(return_me)}
 
+# fix the list columns problem that comes up, then reduce list to 1 df
+detach('package:tidylog', unload = TRUE)
+clockin()
+crawler_result <- map(crawler_result, fun_plucker) %>% 
+  reduce(.f = rbind)
+clockout()
+library(tidylog)
+crawler_result
+
+# cleanup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+rm(fun_crawler, fun_plucker)
+ls()
+trash()
+dim(crawler_result)
+sizer(crawler_result)
+mem_used()
+
+# additional metadata appending :::::::::::::::::::
+output_df <- crawler_result %>% 
+  mutate(crawled_runtime = metadatar$script_starttime, 
+         crawled_url = paste0(crawl_urls$url_base[1], 
+                              crawl_urls$url_suffix[1]))
+output_df
+
+# write to csv
+filename <- paste0(getwd(), "/etl/ore/crawled_",  
+                   paste(year(metadatar$script_starttime), 
+                         month(metadatar$script_starttime),  
+                         day(metadatar$script_starttime), 
+                         hour(metadatar$script_starttime), 
+                         minute(metadatar$script_starttime), sep = "-"), 
+                   "-EST.csv")
+clockin()
+write.csv(output_df, file = filename, row.names = FALSE)
+clockout()
 
 # ^ -----
 
