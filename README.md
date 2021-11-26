@@ -3,7 +3,7 @@ personal-use web crawling project/practice
 
 notes:
 - utilize the rvest tidyverse package to crawl and compile data
-- structure = crawler runs and reads the html, then outputs a csv of the parsed data to a csv file in the ore folder; 
+- structure = crawler runs and reads the html, then outputs a csv of the parsed data to a csv file in the ore folder, then create a sqlite db to house the crawled results; 
 
 Confirming that it is ok to review the shop portion of the site by confirming it is not in the robots.txt file disallows:
 https://www.evo.com/robots.txt

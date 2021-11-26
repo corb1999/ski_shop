@@ -176,9 +176,9 @@ trash()
 
 # crawling function -----------------------------------------------
 
-fun_crawler <- function(url1, url2, url3, sleepy = 7) {
+fun_crawler <- function(url1, url2, url3, sleepy = 10) {
   # sleep here to avoid high freq spamming, give the server some rest
-  Sys.sleep(sleepy + runif(1))
+  Sys.sleep(sleepy + round(runif(1), 2))
   asdf <- read_html(paste0(url1, url2, url3))
   # start by pulling product names
   raw_df <- data.frame(product = asdf %>% 
@@ -202,7 +202,8 @@ fun_crawler <- function(url1, url2, url3, sleepy = 7) {
   return(raw_prices)}
 
 # expected runtime due to sleeping for full run of all pages
-(ceiling(results_total / 40) * 7 / 60) %ps% ' minutes of sleep'
+results_total
+(ceiling(results_total / 40) * 10 / 60) %ps% ' minutes of sleep'
 
 # function tests ++++++++++++++++++++++++++++++++++++++++++
 # test_crawl <- crawl_urls[13, ]
@@ -230,7 +231,7 @@ crawler_result <- pmap(.l = list(crawl_urls$url_base,
                        .f = fun_crawler)
 clockout()
 library(tidylog)
-crawler_result
+head(crawler_result)
 
 # ^ -----
 
@@ -273,13 +274,13 @@ output_df <- crawler_result %>%
 output_df
 
 # write to csv
-filename <- paste0(getwd(), "/etl/ore/crawled_",  
-                   paste(year(metadatar$script_starttime), 
-                         month(metadatar$script_starttime),  
-                         day(metadatar$script_starttime), 
-                         hour(metadatar$script_starttime), 
-                         minute(metadatar$script_starttime), sep = "-"), 
-                   "-EST.csv")
+filename <- paste0(getwd(), "/etl/ore/crawled",  
+                   # paste(year(metadatar$script_starttime), 
+                   #       month(metadatar$script_starttime),  
+                   #       day(metadatar$script_starttime), 
+                   #       hour(metadatar$script_starttime), 
+                   #       minute(metadatar$script_starttime), sep = "-"), 
+                   ".csv")
 clockin()
 write.csv(output_df, file = filename, row.names = FALSE)
 clockout()
