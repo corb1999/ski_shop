@@ -202,7 +202,8 @@ fun_crawler <- function(url1, url2, url3, sleepy = 10) {
   return(raw_prices)}
 
 # expected runtime due to sleeping for full run of all pages
-results_total
+results_total %ps% ' total items'
+(results_total / 40) %ps% ' pages of items'
 (ceiling(results_total / 40) * 10 / 60) %ps% ' minutes of sleep'
 
 # function tests ++++++++++++++++++++++++++++++++++++++++++

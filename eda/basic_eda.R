@@ -104,17 +104,20 @@ connection_db <- dbConnect(SQLite(),
                                            '/ski_shop_db.db'))
 dbListTables(connection_db)
 
-sql_to_run <- dbSendQuery(connection_db, 'SELECT * FROM view_gamma;')
+sql_to_run <- dbSendQuery(connection_db, 'SELECT * FROM view_ultra;')
 df <- dbFetch(sql_to_run)
 df <- df %>% as_tibble()
 dim(df)
+colnames(df)
 df
 
 # ^ -----
 
 # basic viz ------------------------------------------
 
-df %>% filter(crawled_date == '2021 11 26') %>% 
+df %>% 
+  # filter(crawled_date == '2021 11 26') %>% 
+  filter(latest_crawl_run_ind == 1) %>% 
   ggplot(aes(x = regular_price_val)) + 
   geom_histogram(bins = 30, fill = 'blue', 
                  color = 'white', alpha = 0.5) + 
