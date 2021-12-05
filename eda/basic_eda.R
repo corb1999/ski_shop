@@ -22,6 +22,7 @@ library(scales)
 library(gt)
 library(DBI)
 library(RSQLite)
+library(patchwork)
 set.seed(metadatar$seed_set[1])
 options(digits = 4, max.print = 99, warnPartialMatchDollar = TRUE, 
         tibble.print_max = 30, scipen = 999, nwarnings = 5)
@@ -113,16 +114,64 @@ df
 
 # ^ -----
 
-# basic viz ------------------------------------------
+# plot setup -----------------------------------------------------
 
-df %>% 
-  # filter(crawled_date == '2021 11 26') %>% 
-  filter(latest_crawl_run_ind == 1) %>% 
-  ggplot(aes(x = regular_price_val)) + 
-  geom_histogram(bins = 30, fill = 'blue', 
-                 color = 'white', alpha = 0.5) + 
-  theme_minimal()
+(pltname <- 'EVOgear Sales ' %ps% 
+  'as of ' %ps% max(df$crawled_runtime) %ps% 
+  ';')
+
+dfplt <- df %>% 
+  filter(latest_crawl_run_ind == TRUE) %>% 
+  filter(product != '')
+
+# ^ -----
+
+# vizualization functions -------------------------------------
+
+# simple overlay histograms of regular and discounted prices
+fun_plt1 <- function(dff = dfplt) {
+  plt1 <- dff %>% ggplot() + 
+    geom_histogram(aes(x = regular_price_val), 
+                   bins = 30, fill = 'black', 
+                   color = 'black', alpha = 0.2) + 
+    geom_histogram(aes(x = discount_price_val), 
+                   bins = 30, fill = 'blue', 
+                   color = 'white', alpha = 0.5) + 
+    geom_vline(aes(xintercept = mean(regular_price_val))) + 
+    geom_vline(aes(xintercept = mean(discount_price_val)), 
+               color = 'blue', size = 1.1) + 
+    theme_minimal() + 
+    scale_x_continuous(labels = dollar_format()) + 
+    labs(x = 'Product Price', y = 'Item Count', 
+         caption = 'Black = regular price; dotted = discount price')
+  return_me <- plt1 + plot_annotation(title = pltname)
+  return(return_me)}
+# fun_plt1()
+
+# scatterplot of regular prices and the discount amount
+fun_plt2 <- function(dff = dfplt) {
+  plt1 <- dff %>% 
+    ggplot(aes(x = regular_price_val, 
+               y = delta_price_percent)) + 
+    geom_point(alpha = 0.5) + 
+    theme_minimal() + 
+    scale_x_continuous(labels = dollar_format()) + 
+    scale_y_continuous(labels = percent_format()) + 
+    labs(x = 'Product Regular Price', y = 'Discount Percent')
+  return_me <- plt1 + plot_annotation(title = pltname)
+  return(return_me)}
+# fun_plt2()
+
+
+# ^ -----
+
+# basic viz --------------------------------------------------
+
+fun_plt1()
+fun_plt2()
 
 
 
 # ^ -----
+
+
