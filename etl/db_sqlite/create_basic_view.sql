@@ -61,8 +61,8 @@ ORDER BY crawled_runtime DESC;
 CREATE VIEW view_ultra AS 
 SELECT 
 *, 
-discount_price_val - regular_price_val AS delta_price_nominal, 
-discount_price_val / regular_price_val AS delta_price_percent, 
+(discount_price_val - regular_price_val) AS delta_price_nominal, 
+(ROUND(discount_price_val, 2) / regular_price_val) AS delta_price_percent, 
 IIF(crawled_runtime = (SELECT crawled_runtime 
                         FROM view_meta1 LIMIT 1), 
     TRUE, FALSE) AS latest_crawl_run_ind
