@@ -61,6 +61,9 @@ ORDER BY crawled_runtime DESC;
 CREATE VIEW view_ultra AS 
 SELECT 
 *, 
+IIF(instr(UPPER(product), 'SKIS') > 0, 1, 0) AS tag_skis, 
+IIF(instr(UPPER(product), 'BINDINGS') > 0, 1, 0) AS tag_bindings, 
+IIF(instr(UPPER(product), 'BOOTS') > 0, 1, 0) AS tag_boots, 
 (discount_price_val - regular_price_val) AS delta_price_nominal, 
 (ROUND(discount_price_val, 2) / regular_price_val) AS delta_price_percent, 
 IIF(crawled_runtime = (SELECT crawled_runtime 

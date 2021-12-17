@@ -117,11 +117,16 @@ df
 # plot setup -----------------------------------------------------
 
 (pltname <- 'EVOgear Sales ' %ps% 
-  'as of ' %ps% max(df$crawled_runtime) %ps% 
-  ';')
+   'as of ' %ps% max(df$crawled_runtime) %ps% '; ' %ps% 
+   'Current-Records; ' %ps% 
+   # 'No Packages; ' %ps% 
+   # 'Skis; ' %ps% 
+   '')
 
 dfplt <- df %>% 
-  filter(latest_crawl_run_ind == TRUE) %>% 
+  filter(latest_crawl_run_ind == TRUE) %>%
+  # filter(products_in_package == 1) %>% 
+  # filter(tag_skis == 1) %>% 
   filter(product != '')
 
 # ^ -----
@@ -143,7 +148,7 @@ fun_plt1 <- function(dff = dfplt) {
     theme_minimal() + 
     scale_x_continuous(labels = dollar_format()) + 
     labs(x = 'Product Price', y = 'Item Count', 
-         caption = 'Black = regular price; dotted = discount price')
+         caption = 'Black = regular price; Blue = discount price')
   return_me <- plt1 + plot_annotation(title = pltname)
   return(return_me)}
 # fun_plt1()
@@ -152,7 +157,7 @@ fun_plt1 <- function(dff = dfplt) {
 fun_plt2 <- function(dff = dfplt) {
   plt1 <- dff %>% 
     ggplot(aes(x = regular_price_val, 
-               y = delta_price_percent)) + 
+               y = (1- delta_price_percent))) + 
     geom_point(alpha = 0.5) + 
     theme_minimal() + 
     scale_x_continuous(labels = dollar_format()) + 
