@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.db
+.csv
+.sql
+notes_on_sqlite_db.txt
