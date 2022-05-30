@@ -3,6 +3,7 @@
 .RData
 .Ruserdata
 .db
-.csv
-.sql
+*.csv
+importer.sql
+inserter.sql
 notes_on_sqlite_db.txt

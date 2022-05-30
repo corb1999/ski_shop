@@ -119,16 +119,18 @@ df
 (pltname <- 'EVOgear Sales ' %ps% 
    'as of ' %ps% max(df$crawled_runtime) %ps% '; ' %ps% 
    'Current-Records; ' %ps% 
-   # 'No Packages; ' %ps% 
+   'No Packages; ' %ps%
    # 'Skis; ' %ps%
-   'Boots; ' %ps% 
+   # 'Boots; ' %ps%
+   'Bindings; ' %ps% 
    '')
 
 dfplt <- df %>% 
   filter(latest_crawl_run_ind == TRUE) %>%
-  # filter(products_in_package == 1) %>% 
+  filter(products_in_package == 1) %>%
   # filter(tag_skis == 1) %>%
-  filter(tag_boots == 1) %>% 
+  # filter(tag_boots == 1) %>%
+  filter(tag_bindings == 1) %>% 
   filter(product != '')
 
 # ^ -----
